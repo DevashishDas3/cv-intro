@@ -11,9 +11,6 @@ def get_lane_center(lanes: list):
     for i in range(len(x_list)):
         pass
 
-
-
-        
     for lane in lanes:
         x1, y1, x2, y2 = lane[0]
         center = ((x1 + x2)/2, (y1 + y2)/2)
