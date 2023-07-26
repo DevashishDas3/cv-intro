@@ -134,6 +134,17 @@ def get_lane_center(lanes):
 
     return center, slope
 
+def recommend_direction(center,slope):
+    #Gets if center is within 10 pixels of 960, it returns forward, otherwise gets back to center
+    if center< 950:
+        return("left")
+    elif center>970:
+        return("right")
+    elif center <970 and center>950:
+        return("forward")
+    else:
+        return("cannot generate direction recommendation...")
+
 
 if __name__ ==  "__main__":
     draw_lines()
