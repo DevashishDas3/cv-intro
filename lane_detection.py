@@ -48,44 +48,21 @@ def detect_lines(img, thresh1 = 50, thresh2 = 150, aperture_Size = 3, min_LineLe
 def detect_lanes(line_list):
     lanes = []
     slopeList, interceptList = get_slopes_intercepts(line_list)
-
-
-
     for i in range(len(interceptList)):
         for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
             slope_difference = abs(slopeList[i] - slopeList[j])
             intercept_difference = abs(interceptList[i] - interceptList[j])
 
             if slope_difference < 2 and (intercept_difference > 50 and intercept_difference < 1000):
-                pass
+                xCoord = (slopeList[i] * interceptList[i] - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
+                yCoord = slopeList[i] * (xCoord - interceptList[i])
+                lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[i], 1080, xCoord, yCoord]])
 
 
+    return lanes
 
-    i=0
-    for slope in slopes:
-        if i == len(slopes) - 1:
-            break
-        if i == 0:
-            continue
-        if (slopes[i + 1] - slopes[i] < 0.6) and (intercepts[i + 1] - intercepts[i] < 200):
-            valid_list1.append([line[i], line[i-1]])
-        else:
-            continue
-    
+def draw_lines(img, lanes):
+    for lane in lanes:
+        x1, y1, x2, y2 = lane
+        cv2.line(img, x1, y1, x2, y2, (255,0,0), 6)
 
-        
-
-    
-    '''
-    for j in range(len(valid_list1)):
-        pass
-    '''
-
-    return valid_list1
-
-def draw_lines(imgin, thresh1in, thresh2in, aperture_Sizein, min_LineLengthin, max_LineGapin):
-    pass
-
-cap = cv2.VideoCapture('AUV_Vid.mkv')
-ret, frame = cap.read()
-draw_lines(frame, 50, 50, 3, 300, 30)
