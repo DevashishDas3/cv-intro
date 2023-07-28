@@ -2,16 +2,20 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
-def get_slopes(line, m):
-    x1, y1, x2, y2 = line[0]
-    m.append((y2 - y1) / (x2 - x1))
+def get_slopes_intercepts(lines):
+    slopeList = []
+    interceptList = []
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        slope = (y1-y2)/(x1-x2)
+        intercept = ((1080-y1)/slope) + x1 #use point slope form
+        interceptList.append(intercept)
+        slopeList.append(slope)
+    
+    return slopeList, interceptList
 
-def get_intercepts(line, ints):
-    x1, y1, x2, y2 = line[0]
-    m=(y2 - y1) / (x2 - x1)
-    ints.append(((0-y1)/m) + x1)
 
-def analyze_lines(img, thresh1, thresh2, aperture_Size, min_LineLength, max_LineGap):
+def detect_lines(img, thresh1 = 50, thresh2 = 150, aperture_Size = 3, min_LineLength = 100, max_LineGap = 10): #william vals
     gray = cv2.cvtColor(img, cv2.IMREAD_GRAYSCALE)
     edges = cv2.Canny(gray, thresh1, thresh2, apertureSize=aperture_Size)
     lines = cv2.HoughLinesP(
@@ -41,20 +45,21 @@ def analyze_lines(img, thresh1, thresh2, aperture_Size, min_LineLength, max_Line
         #i+=1
     plt.imshow(img)
     '''
-def analyze_lanes(line_list):
-    slopes = []
-    intercepts = []
-    valid_list1 = []
-    valid_list2 = []
-    lane_list = []
-    indices = []
+def detect_lanes(line_list):
+    lanes = []
+    slopeList, interceptList = get_slopes_intercepts(line_list)
 
-    for line in line_list:
-        get_slopes(line, slopes)
-        get_intercepts(line, intercepts)
-    
-    slopes.sort()
-    intercepts.sort()
+
+
+    for i in range(len(interceptList)):
+        for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
+            slope_difference = abs(slopeList[i] - slopeList[j])
+            intercept_difference = abs(interceptList[i] - interceptList[j])
+
+            if slope_difference < 2 and (intercept_difference > 50 and intercept_difference < 1000):
+                pass
+
+
 
     i=0
     for slope in slopes:
@@ -79,25 +84,7 @@ def analyze_lanes(line_list):
     return valid_list1
 
 def draw_lines(imgin, thresh1in, thresh2in, aperture_Sizein, min_LineLengthin, max_LineGapin):
-    lines = analyze_lines(imgin, thresh1in, thresh2in, aperture_Sizein, min_LineLengthin, max_LineGapin)
-    lines = analyze_lanes(lines)
-    print(lines)
-    i = 0
-    slopes_1 = []
-    intercepts_1 = []
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        get_slopes(line, slopes_1)
-        get_intercepts(line, intercepts_1)
-        
-        cv2.putText(imgin, f"slope = {slopes_1[i]}", (x2, y2), cv2.FONT_HERSHEY_DUPLEX, 1, (0,225,0), 3)
-
-        theta = np.arctan((x2-x1)/(y2-y1))
-        theta = np.round(np.degrees(theta), 2)
-        cv2.putText(imgin, f"angle offset = {theta}", (x1, y1), cv2.FONT_HERSHEY_DUPLEX, 1, (0,225,0), 3)
-        cv2.line(imgin, (x1, y1), (x2, y2), (255,0, 0), 2)
-        i+=1
-    plt.imshow(imgin)
+    pass
 
 cap = cv2.VideoCapture('AUV_Vid.mkv')
 ret, frame = cap.read()
