@@ -2,30 +2,18 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
-def get_slopes_intercepts(lines):
-    slopeList = []
-    interceptList = []
-    for line in lines:
-        x1, y1, x2, y2 = line[0]
-        slope = (y1-y2)/(x1-x2)
-        intercept = ((1080-y1)/slope) + x1 #use point slope form
-        interceptList.append(intercept)
-        slopeList.append(slope)
-    
-    return slopeList, interceptList
-
-
-def detect_lines(img, thresh1 = 50, thresh2 = 150, aperture_Size = 3, min_LineLength = 100, max_LineGap = 10): #william vals
-    gray = cv2.cvtColor(img, cv2.IMREAD_GRAYSCALE)
-    edges = cv2.Canny(gray, thresh1, thresh2, apertureSize=aperture_Size)
+def detect_lines(img, thresh1 = 50, thresh2 = 150, apertureSize = 3, minLineLength = 100, maxLineGap = 10):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #grayscale
+    blur = cv2.GaussianBlur(gray, (9, 9), 0)
+    edges = cv2.Canny(blur, thresh1, thresh2, apertureSize)
     lines = cv2.HoughLinesP(
-                edges, #what to draw lines on
-                1, #number of lines on each edge
-                np.pi/180,
-                100,
-                minLineLength=min_LineLength, #down goes more frequent, up goes less 300
-                maxLineGap=max_LineGap, #inverse relation 30
-        ) # detect lines
+            edges,
+            1,
+            np.pi/180,
+            100,
+            minLineLength = minLineLength,
+            maxLineGap = maxLineGap,
+    )
     return lines
     #i = 1
     '''
@@ -45,24 +33,52 @@ def detect_lines(img, thresh1 = 50, thresh2 = 150, aperture_Size = 3, min_LineLe
         #i+=1
     plt.imshow(img)
     '''
+
+def draw_lines(img, lines):
+    try:
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            cv2.line(img, (x1, y1), (x2, y2), (255,0,0), 2)
+    except:
+        pass
+
+    return img
+
+def get_slopes_intercepts(lines):
+    slopeList = []
+    interceptList = []
+    print(lines)
+    for line in lines.tolist():
+        if (x1-x2) != 0:
+            x1, y1, x2, y2 = line[0]
+            slope = (y1-y2)/(x1-x2)
+            intercept = ((1080-y1)/slope) + x1 #use point slope form
+            interceptList.append(intercept)
+            slopeList.append(slope)
+        else:
+            pass
+    
+    return slopeList, interceptList
+
 def detect_lanes(line_list):
     lanes = []
     slopeList, interceptList = get_slopes_intercepts(line_list)
-    for i in range(len(interceptList)):
-        for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
-            slope_difference = abs(slopeList[i] - slopeList[j])
-            intercept_difference = abs(interceptList[i] - interceptList[j])
+    if len(interceptList) > 1:
+        for i in range(len(interceptList)):
+            for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
+                slope_difference = abs(slopeList[i] - slopeList[j])
+                intercept_difference = abs(interceptList[i] - interceptList[j])
 
-            if slope_difference < 2 and (intercept_difference > 50 and intercept_difference < 1000):
-                xCoord = (slopeList[i] * interceptList[i] - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
-                yCoord = slopeList[i] * (xCoord - interceptList[i])
-                lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[i], 1080, xCoord, yCoord]])
-
-
+                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
+                    xCoord = (slopeList[i] * interceptList[i] - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
+                    yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
+                    lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[i], 1080, xCoord, yCoord]])
     return lanes
 
-def draw_lines(img, lanes):
+def draw_lanes(img, lanes):
     for lane in lanes:
-        x1, y1, x2, y2 = lane
-        cv2.line(img, x1, y1, x2, y2, (255,0,0), 6)
+        for line in lane:
+            x1, y1, x2, y2 = line
+            cv2.line(img, int(x1), int(y1), int(x2), int(y2), (255,0,0), 6)
+    return img
 
