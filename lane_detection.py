@@ -42,22 +42,22 @@ def draw_lines(img, lines):
     except:
         pass
 
-    return img
+    return img.tolist()
 
 def get_slopes_intercepts(lines):
     slopeList = []
     interceptList = []
     print(lines)
-    for line in lines.tolist():
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
         if (x1-x2) != 0:
-            x1, y1, x2, y2 = line[0]
             slope = (y1-y2)/(x1-x2)
             intercept = ((1080-y1)/slope) + x1 #use point slope form
             interceptList.append(intercept)
             slopeList.append(slope)
         else:
             pass
-    
+
     return slopeList, interceptList
 
 def detect_lanes(line_list):
@@ -69,10 +69,11 @@ def detect_lanes(line_list):
                 slope_difference = abs(slopeList[i] - slopeList[j])
                 intercept_difference = abs(interceptList[i] - interceptList[j])
 
-                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
+                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 10000):
                     xCoord = (slopeList[i] * interceptList[i] - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
                     yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
                     lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[i], 1080, xCoord, yCoord]])
+    print(lanes)
     return lanes
 
 def draw_lanes(img, lanes):
