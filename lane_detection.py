@@ -4,8 +4,7 @@ import numpy as np
 
 def detect_lines(img, thresh1 = 50, thresh2 = 150, apertureSize = 3, minLineLength = 100, maxLineGap = 10):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #grayscale
-    blur = cv2.GaussianBlur(gray, (9, 9), 0)
-    edges = cv2.Canny(blur, thresh1, thresh2, apertureSize)
+    edges = cv2.Canny(gray, thresh1, thresh2, apertureSize)
     lines = cv2.HoughLinesP(
             edges,
             1,
@@ -37,26 +36,30 @@ def detect_lines(img, thresh1 = 50, thresh2 = 150, apertureSize = 3, minLineLeng
 def draw_lines(img, lines):
     try:
         for line in lines:
-            x1, y1, x2, y2 = line[0]
+            try:
+                x1, y1, x2, y2 = line[0]
+            except:
+                print("Only three vals")
+                continue
             cv2.line(img, (x1, y1), (x2, y2), (255,0,0), 2)
     except:
         pass
 
-    return img.tolist()
+    return img #.tolist()
 
 def get_slopes_intercepts(lines):
     slopeList = []
     interceptList = []
-    print(lines)
+
     for line in lines:
         x1, y1, x2, y2 = line[0]
-        if (x1-x2) != 0:
+        if (x1-x2) != 0 and (y1-y1) != 0: 
             slope = (y1-y2)/(x1-x2)
             intercept = ((1080-y1)/slope) + x1 #use point slope form
             interceptList.append(intercept)
             slopeList.append(slope)
         else:
-            pass
+            continue
 
     return slopeList, interceptList
 
@@ -64,15 +67,15 @@ def detect_lanes(line_list):
     lanes = []
     slopeList, interceptList = get_slopes_intercepts(line_list)
     if len(interceptList) > 1:
-        for i in range(len(interceptList)):
+        for i in range(0, len(interceptList)):
             for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
                 slope_difference = abs(slopeList[i] - slopeList[j])
                 intercept_difference = abs(interceptList[i] - interceptList[j])
 
-                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 10000):
-                    xCoord = (slopeList[i] * interceptList[i] - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
+                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
+                    xCoord = ((slopeList[i] * interceptList[i]) - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
                     yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
-                    lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[i], 1080, xCoord, yCoord]])
+                    lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[j], 1080, xCoord, yCoord]])
     print(lanes)
     return lanes
 
@@ -80,6 +83,6 @@ def draw_lanes(img, lanes):
     for lane in lanes:
         for line in lane:
             x1, y1, x2, y2 = line
-            cv2.line(img, int(x1), int(y1), int(x2), int(y2), (255,0,0), 6)
+            cv2.line(img, int(x1), int(y1), int(x2), int(y2), (255,0,0), 2)
     return img
 
