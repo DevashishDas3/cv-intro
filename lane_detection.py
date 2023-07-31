@@ -72,7 +72,7 @@ def detect_lanes(line_list):
                 slope_difference = abs(slopeList[i] - slopeList[j])
                 intercept_difference = abs(interceptList[i] - interceptList[j])
 
-                if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
+                if True: #slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
                     xCoord = ((slopeList[i] * interceptList[i]) - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
                     yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
                     lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[j], 1080, xCoord, yCoord]])
