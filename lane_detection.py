@@ -2,7 +2,7 @@ import cv2
 from matplotlib import pyplot as plt
 import numpy as np
 
-def detect_lines(img, thresh1 = 50, thresh2 = 150, apertureSize = 3, minLineLength = 100, maxLineGap = 10):
+def detect_lines(img, thresh1 = 36, thresh2 = 150, apertureSize = 3, minLineLength = 100, maxLineGap = 10):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #grayscale
     edges = cv2.Canny(gray, thresh1, thresh2, apertureSize)
     lines = cv2.HoughLinesP(
@@ -58,7 +58,7 @@ def get_slopes_intercepts(lines):
 
         try:
             slope = (y1-y2)/(x1-x2)
-            intercept = ((1280-y1)/slope) + x1 #use point slope form
+            intercept = ((1080-y1)/slope) + x1 #use point slope form
             interceptList.append(intercept)
             slopeList.append(slope)
             print(slopeList)
@@ -83,9 +83,9 @@ def detect_lanes(line_list):
 
                 if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
                     xCoord = ((slopeList[i] * interceptList[i]) - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
-                    yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1280
+                    yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
                     print("got in true")
-                    lanes.append([[interceptList[i], 1280, xCoord, yCoord], [interceptList[j], 1280, xCoord, yCoord]])
+                    lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[j], 1080, xCoord, yCoord]])
     print(lanes)
     return lanes
 
@@ -93,6 +93,6 @@ def draw_lanes(img, lanes):
     for lane in lanes:
         for line in lane:
             x1, y1, x2, y2 = line
-            cv2.line(img, int(x1), int(y1), int(x2), int(y2), (255,0,0), 2)
+            cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255,0,0), 2)
     return img
 
