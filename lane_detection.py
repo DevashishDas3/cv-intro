@@ -58,10 +58,11 @@ def get_slopes_intercepts(lines):
 
         try:
             slope = (y1-y2)/(x1-x2)
-            intercept = ((1080-y1)/slope) + x1 #use point slope form
+            intercept = ((1280-y1)/slope) + x1 #use point slope form
             interceptList.append(intercept)
             slopeList.append(slope)
             print(slopeList)
+            print(interceptList)
         except ZeroDivisionError:
             print("error: divided by zero\n")
             continue
@@ -82,9 +83,9 @@ def detect_lanes(line_list):
 
                 if slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
                     xCoord = ((slopeList[i] * interceptList[i]) - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
-                    yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
+                    yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1280
                     print("got in true")
-                    lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[j], 1080, xCoord, yCoord]])
+                    lanes.append([[interceptList[i], 1280, xCoord, yCoord], [interceptList[j], 1280, xCoord, yCoord]])
     print(lanes)
     return lanes
 
