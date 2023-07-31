@@ -36,11 +36,8 @@ def detect_lines(img, thresh1 = 50, thresh2 = 150, apertureSize = 3, minLineLeng
 def draw_lines(img, lines):
     try:
         for line in lines:
-            try:
-                x1, y1, x2, y2 = line[0]
-            except:
-                print("Only three vals")
-                continue
+            x1, y1, x2, y2 = line[0]
+            print(line[0])
             cv2.line(img, (x1, y1), (x2, y2), (255,0,0), 2)
     except:
         pass
@@ -52,20 +49,31 @@ def get_slopes_intercepts(lines):
     interceptList = []
 
     for line in lines:
-        x1, y1, x2, y2 = line[0]
-        if (x1-x2) != 0 and (y1-y1) != 0: 
+        try:
+            x1, y1, x2, y2 = line[0]
+            #print(x1, y1, x2, y2) -> works
+        except:
+            print("Only three vals")
+            continue
+
+        try:
             slope = (y1-y2)/(x1-x2)
             intercept = ((1080-y1)/slope) + x1 #use point slope form
             interceptList.append(intercept)
             slopeList.append(slope)
-        else:
+            print(slopeList)
+        except ZeroDivisionError:
+            print("error: divided by zero\n")
             continue
+
 
     return slopeList, interceptList
 
 def detect_lanes(line_list):
+    print(line_list)
     lanes = []
     slopeList, interceptList = get_slopes_intercepts(line_list)
+    print(len(interceptList), len(slopeList))
     if len(interceptList) > 1:
         for i in range(0, len(interceptList)):
             for j in range(i+1, len(interceptList)): #iterate through rest of all elements onward
@@ -75,6 +83,7 @@ def detect_lanes(line_list):
                 if True: #slope_difference < 1 and (intercept_difference > 100 and intercept_difference < 1000):
                     xCoord = ((slopeList[i] * interceptList[i]) - (slopeList[j] * interceptList[j]))/(slopeList[i] - slopeList[j])
                     yCoord = slopeList[i] * (xCoord - interceptList[i]) + 1080
+                    print("got in true")
                     lanes.append([[interceptList[i], 1080, xCoord, yCoord], [interceptList[j], 1080, xCoord, yCoord]])
     print(lanes)
     return lanes
